@@ -1,7 +1,8 @@
-import textnode
+from textnode import TextType, TextNode
+
 
 def main():
-    node = textnode.TextNode("This is some anchor text", textnode.TextType.LINK, "https://boot.dev")
+    node = TextNode("This is some anchor text", TextType.LINK, "https://boot.dev")
     print(node)
 
 if __name__ == "__main__":
