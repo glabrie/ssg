@@ -1,7 +1,8 @@
 import unittest
 
 from textnode import TextNode, TextType, text_node_to_html_node
-
+from split_delimiter import split_nodes_delimiter
+from extract import extract_markdown_images, extract_markdown_links
 
 class TestTextNode(unittest.TestCase):
     def test_eq(self):
@@ -53,3 +54,56 @@ class TestTextNodeToHTMLNode(unittest.TestCase):
         html_node = text_node_to_html_node(node)
         self.assertEqual(html_node.tag, "b")
         self.assertEqual(html_node.value, "This is bold")
+
+class TestSplitDelimiterBold(unittest.TestCase):
+    def test_text(self):
+        node = TextNode("This is a **sample** text", TextType.TEXT)
+        result = split_nodes_delimiter([node], "**", TextType.BOLD)
+        should_be = [
+            TextNode("This is a ", TextType.TEXT),
+            TextNode("sample", TextType.BOLD),
+            TextNode(" text", TextType.TEXT)
+                ]
+        self.assertEqual(result, should_be)
+
+class TestSplitDelimiterCode(unittest.TestCase):
+    def test_text(self):
+        node = TextNode("This is a `sample` text", TextType.TEXT)
+        result = split_nodes_delimiter([node], "`", TextType.CODE)
+        should_be = [
+            TextNode("This is a ", TextType.TEXT),
+            TextNode("sample", TextType.CODE),
+            TextNode(" text", TextType.TEXT)
+                ]
+        self.assertEqual(result, should_be)
+
+class TestSplitDelimiterItalic(unittest.TestCase):
+    def test_text(self):
+        node = TextNode("This is a _sample_ text", TextType.TEXT)
+        result = split_nodes_delimiter([node], "_", TextType.ITALIC)
+        should_be = [
+            TextNode("This is a ", TextType.TEXT),
+            TextNode("sample", TextType.ITALIC),
+            TextNode(" text", TextType.TEXT)
+                ]
+        self.assertEqual(result, should_be)
+
+class TestSplitNoType(unittest.TestCase):
+    def test_text(self):
+        node = TextNode("This is a sample text", TextType.TEXT)
+        with self.assertRaises(Exception) as context:
+            _ = split_nodes_delimiter([node], "**", TextType.BOLD)
+        self.assertIn("Unmatched delimiter in text: This is a sample text", str(context.exception))
+
+class Extract(unittest.TestCase):
+    def test_extract_markdown_images(self):
+        matches = extract_markdown_images(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png)"
+        )
+        self.assertListEqual([("image", "https://i.imgur.com/zjjcJKZ.png")], matches)
+
+    def test_extract_markdown_links(self):
+        matches = extract_markdown_links(
+            "This is text with a [link](https://boot.dev)"
+        )
+        self.assertListEqual([("link", "https://boot.dev")], matches)
