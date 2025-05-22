@@ -20,18 +20,50 @@ def split_nodes_delimiter(old_nodes: list[TextNode], delimiter: str, text_type: 
                     new_list.append(TextNode(split_node, text_type))
     return new_list
 
-def split_nodes_images(old_nodes: list[TextNode]) -> list[TextNode]:
+def split_nodes_image(old_nodes: list[TextNode]) -> list[TextNode]:
     new_list: list[TextNode] = []
     for node in old_nodes:
         if node.text_type != TextType.TEXT:
             new_list.append(node)
             continue
         
-        extracted = extract_markdown_images(node.text)
+        extracted_images = extract_markdown_images(node.text)
 
-        if not extracted:
+        if not extracted_images:
             new_list.append(node)
         
         leftover = node.text
-        for alt.text, url in extracted:
+        for alt_text, url in extracted_images:
+            delimiter = f"![{alt_text}]({url})"
+            remainder = leftover.split(delimiter, maxsplit=1)
+            if remainder[0] != "":
+                new_list.append(TextNode(remainder[0], TextType.TEXT))
+            new_list.append(TextNode(alt_text, TextType.IMAGE, url))
+            leftover = remainder[1]
+        if leftover != "":
+            new_list.append(TextNode(leftover, TextType.TEXT))
+    return new_list
 
+def split_nodes_link(old_nodes: list[TextNode]) -> list[TextNode]:
+    new_list: list[TextNode] = []
+    for node in old_nodes:
+        if node.text_type != TextType.TEXT:
+            new_list.append(node)
+            continue
+
+        extracted_link = extract_markdown_links(node.text)
+
+        if not extracted_link:
+            new_list.append(node)
+
+        leftover = node.text
+        for alt_text, url in extracted_link:
+            delimiter = f"[{alt_text}]({url})"
+            remainder = leftover.split(delimiter, maxsplit=1)
+            if remainder[0] != "":
+                new_list.append(TextNode(remainder[0], TextType.TEXT))
+            new_list.append(TextNode(alt_text, TextType.LINK, url))
+            leftover = remainder[1]
+        if leftover != "":
+            new_list.append(TextNode(leftover, TextType.TEXT))
+    return new_list
