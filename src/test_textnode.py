@@ -1,7 +1,7 @@
 import unittest
 
 from textnode import TextNode, TextType, text_node_to_html_node
-from split_delimiter import split_nodes_delimiter, split_nodes_image
+from split_delimiter import split_nodes_delimiter, split_nodes_image, split_nodes_link
 from extract import extract_markdown_images, extract_markdown_links
 
 class TestTextNode(unittest.TestCase):
@@ -109,7 +109,7 @@ class Extract(unittest.TestCase):
         self.assertListEqual([("link", "https://boot.dev")], matches)
 
 class TestSplitImagesAndLinks(unittest.TestCase):
-     def test_split_images(self):
+    def test_split_images(self):
         node = TextNode(
             "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
             TextType.TEXT,
@@ -125,4 +125,102 @@ class TestSplitImagesAndLinks(unittest.TestCase):
                 ),
             ],
             new_nodes,
-        )  
+        )
+
+    def test_split_links(self):
+        node = TextNode(
+            "This is a text with a [link](https://boot.dev) and another [link](https://archlinux.org)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is a text with a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://archlinux.org"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_no_image(self):
+        node = TextNode(
+            "This is text with no image",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual([TextNode("This is text with no image", TextType.TEXT, None)], new_nodes)
+
+    def test_split_no_link(self):
+        node = TextNode(
+            "This is text with no link",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual([TextNode("This is text with no link", TextType.TEXT, None)], new_nodes)
+
+    def test_split_out_of_order(self):
+        node = TextNode(
+            "[link](https://boot.dev) and another [link](https://archlinux.org)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://archlinux.org"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_out_of_order2(self):
+        node = TextNode(
+            "[link](https://boot.dev)[link](https://archlinux.org) and some text",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+                TextNode("link", TextType.LINK, "https://archlinux.org"),
+                TextNode(" and some text", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_nothing_to_split(self):
+        node = TextNode(
+            "",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual([TextNode("", TextType.TEXT, None)], new_nodes)
+
+    def test_overload_links(self):
+        node = TextNode(
+            "This is a text with a [![image](https://animage.com](https://boot.dev) and another [link](https://archlinux.org)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is a text with a [![image](https://animage.com](https://boot.dev) and another ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://archlinux.org"),
+            ],
+            new_nodes,
+        )
+
+    def test_overload_images(self):
+        node = TextNode(
+            "This is an ![[image](https://animage.com)](https://animage.com) and another ![image](https://animage.com)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is an ![[image](https://animage.com)](https://animage.com) and another ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://animage.com"),
+            ],
+            new_nodes,
+        )

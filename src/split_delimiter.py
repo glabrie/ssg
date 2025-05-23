@@ -31,7 +31,8 @@ def split_nodes_image(old_nodes: list[TextNode]) -> list[TextNode]:
 
         if not extracted_images:
             new_list.append(node)
-        
+            continue
+
         leftover = node.text
         for alt_text, url in extracted_images:
             delimiter = f"![{alt_text}]({url})"
@@ -55,6 +56,7 @@ def split_nodes_link(old_nodes: list[TextNode]) -> list[TextNode]:
 
         if not extracted_link:
             new_list.append(node)
+            continue
 
         leftover = node.text
         for alt_text, url in extracted_link:
