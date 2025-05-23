@@ -11,7 +11,7 @@ def split_nodes_delimiter(old_nodes: list[TextNode], delimiter: str, text_type: 
             continue
         else:
             split_nodes = node.text.split(delimiter)
-            if len(split_nodes) == 1:
+            if len(split_nodes) % 2 == 0:
                 raise Exception("Unmatched delimiter in text: " + node.text)
             for i, split_node in enumerate(split_nodes):
                 if i % 2 == 0:
@@ -69,3 +69,5 @@ def split_nodes_link(old_nodes: list[TextNode]) -> list[TextNode]:
         if leftover != "":
             new_list.append(TextNode(leftover, TextType.TEXT))
     return new_list
+
+
