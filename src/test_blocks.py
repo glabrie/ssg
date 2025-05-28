@@ -59,3 +59,17 @@ class TestBlockType(unittest.TestCase):
         blocks = block_to_block_type(md)
         self.assertEqual(blocks, BlockType.CODE)
 
+    def test_block_unordered(self):
+        md = """- Clean code is scary
+- Limiting functions to 5 lines or less is stupid
+- Uncle Bob is cool though"""
+        blocks = block_to_block_type(md)
+        self.assertEqual(blocks, BlockType.UNORDERED_LIST)
+
+    def test_block_quote(self):
+        md = """> It's not that it's stupid in itself
+> It's just that it can be very confusing, very fast
+> Context is super important, and a large number of small functions and abstractions
+> can make the code less readable, more confusing"""
+        blocks = block_to_block_type(md)
+        self.assertEqual(blocks, BlockType.QUOTE)

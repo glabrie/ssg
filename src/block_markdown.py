@@ -6,8 +6,8 @@ class BlockType(Enum):
     HEADING = "heading"
     CODE = "code"
     QUOTE = "quote"
-    UNORDERED_LIST = "unordered list"
-    ORDERED_LIST = "ordered list"
+    ULIST = "unordered_list"
+    OLIST = "ordered_list"
 
 def markdown_to_blocks(markdown: str) -> list[str]:
     new_list: list[str] = []
@@ -34,7 +34,7 @@ def block_to_block_type(block: str):
         for line in lines:
             if not line.startswith("- "):
                 return BlockType.PARAGRAPH
-        return BlockType.UNORDERED_LIST
+        return BlockType.ULIST
     elif block.startswith("1. "):
         lines = block.split("\n")
         counter = 1
@@ -43,6 +43,6 @@ def block_to_block_type(block: str):
                 return BlockType.PARAGRAPH
             else:
                 counter += 1
-        return BlockType.ORDERED_LIST
+        return BlockType.OLIST
     else:
         return BlockType.PARAGRAPH
